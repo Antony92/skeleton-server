@@ -125,7 +125,7 @@ await server.register(fastifyOauth2, {
 
 // not found handler
 server.setNotFoundHandler((request, reply) => {
-  if (request.url.includes('/api')) {
+  if (request.url.startsWith('/api/')) {
     reply.code(404).send({
       message: `Route ${request.method}:${request.url} not found`,
       error: 'Not Found',
