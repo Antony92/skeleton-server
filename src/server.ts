@@ -30,6 +30,7 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { configSchema } from './config.js';
 import authSessionPlugin from './modules/auth/auth-session.plugin.js';
 import serverEventsPlugin from './modules/server-events/server-events.plugin.js';
+import fileRoute from './modules/file/file.route.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -53,10 +54,7 @@ await server.register(fastifyRateLimit, {
   timeWindow: '15 minutes',
 });
 await server.register(fastifyStatic, { root: path.join(__dirname, 'public') });
-await server.register(fastifyMultipart, {
-  limits: { fileSize: 5 * 1024 * 1024 },
-  attachFieldsToBody: 'keyValues',
-}); // max file size is set to 5MB
+await server.register(fastifyMultipart);
 await server.register(fastifySwagger, swaggerOptions);
 await server.register(fastifySwaggerUi, { routePrefix: '/swagger' });
 await server.register(fastifyWebsocket);
@@ -151,6 +149,7 @@ await server.register(userRoute, { prefix: '/api/v1' });
 await server.register(apiKeyRoute, { prefix: '/api/v1' });
 await server.register(websocketRoute, { prefix: '/api/v1' });
 await server.register(feedbackRoute, { prefix: '/api/v1' });
+await server.register(fileRoute, { prefix: '/api/v1' });
 
 // testing
 export default server;
