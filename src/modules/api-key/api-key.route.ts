@@ -23,12 +23,12 @@ const apiKeyRoute: FastifyPluginAsync = async (server) => {
   );
   server.post(
     '/me/api-key',
-    { onRequest: secured(), schema: { hide: true } },
+    { onRequest: server.auth([secured()]), schema: { hide: true } },
     createPersonalApiKeyHandler,
   );
   server.delete<{ Params: IdParam }>(
     '/me/api-key',
-    { onRequest: secured(), schema: { hide: true } },
+    { onRequest: server.auth([secured()]), schema: { hide: true } },
     deletePersonalApiKeyHandler,
   );
 };

@@ -7,7 +7,7 @@ import type { CreateFeedbackBody } from './feedback.type.js';
 const feedbackRoute: FastifyPluginAsync = async (server) => {
   server.post<{ Body: CreateFeedbackBody }>(
     '/feedback',
-    { onRequest: secured(), schema: submitFeedbackSchema },
+    { onRequest: server.auth([secured()]), schema: submitFeedbackSchema },
     submitFeedbackHandler,
   );
 };

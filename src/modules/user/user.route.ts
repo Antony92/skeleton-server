@@ -28,7 +28,7 @@ import {
 const userRoute: FastifyPluginAsync = async (server) => {
   server.get<{ Querystring: UserSearchQuery }>(
     '/users',
-    { onRequest: secured(), schema: getUsersSchema },
+    { onRequest: server.auth([secured()]), schema: getUsersSchema },
     getUsersHandler,
   );
   server.get(
@@ -56,7 +56,11 @@ const userRoute: FastifyPluginAsync = async (server) => {
     { onRequest: server.auth([secured([Role.ADMIN])]), schema: deleteUserSchema },
     deleteUserHandler,
   );
-  server.get('/me', { onRequest: secured(), schema: { hide: true } }, getUserProfileHandler);
+  server.get(
+    '/me',
+    { onRequest: server.auth([secured()]), schema: { hide: true } },
+    getUserProfileHandler,
+  );
 };
 
 export default userRoute;
