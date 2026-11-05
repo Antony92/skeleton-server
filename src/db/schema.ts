@@ -1,6 +1,7 @@
 import { defineRelations, sql } from 'drizzle-orm';
 import {
   boolean,
+  index,
   integer,
   jsonb,
   pgEnum,
@@ -32,17 +33,21 @@ export const usersTable = pgTable('users', {
   lastLogin: timestamp(),
 });
 
-export const apiKeysTable = pgTable('api_keys', {
-  id: uuid('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  jti: text().notNull().unique(),
-  created: timestamp().defaultNow(),
-  userId: uuid('user_id')
-    .notNull()
-    .unique()
-    .references(() => usersTable.id, { onDelete: 'cascade' }),
-});
+export const apiKeysTable = pgTable(
+  'api_keys',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    jti: text().notNull().unique(),
+    created: timestamp().defaultNow(),
+    userId: uuid('user_id')
+      .notNull()
+      .unique()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => [index('api_keys_user_id_idx').on(table.userId)],
+);
 
 export const auditLogsTable = pgTable('audit_logs', {
   id: uuid('id')
