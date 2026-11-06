@@ -1,20 +1,20 @@
 import path, { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import fastifyAuth from '@fastify/auth';
-import fastifyEnv from '@fastify/env';
-import fastifyCompress from '@fastify/compress';
-import fastifyCookie from '@fastify/cookie';
-import fastifyCors from '@fastify/cors';
-import fastifyJwt from '@fastify/jwt';
-import fastifyMultipart from '@fastify/multipart';
-import fastifyOauth2 from '@fastify/oauth2';
-import fastifyRateLimit from '@fastify/rate-limit';
-import fastifySchedule from '@fastify/schedule';
-import fastifySSE from '@fastify/sse';
-import fastifyStatic from '@fastify/static';
-import fastifySwagger from '@fastify/swagger';
-import fastifySwaggerUi from '@fastify/swagger-ui';
-import fastifyWebsocket from '@fastify/websocket';
+import { fastifyAuth } from '@fastify/auth';
+import { fastifyEnv } from '@fastify/env';
+import { fastifyCompress } from '@fastify/compress';
+import { fastifyCookie } from '@fastify/cookie';
+import { fastifyCors } from '@fastify/cors';
+import { fastifyJwt } from '@fastify/jwt';
+import { fastifyMultipart } from '@fastify/multipart';
+import { fastifyOauth2 } from '@fastify/oauth2';
+import { fastifyRateLimit } from '@fastify/rate-limit';
+import { fastifySchedule } from '@fastify/schedule';
+import { fastifySSE } from '@fastify/sse';
+import { fastifyStatic } from '@fastify/static';
+import { fastifySwagger } from '@fastify/swagger';
+import { fastifySwaggerUi } from '@fastify/swagger-ui';
+import { fastifyWebsocket } from '@fastify/websocket';
 import fastify, { LogController } from 'fastify';
 import { trustedAccessTokens, trustedRefreshTokens } from './modules/auth/auth.guard.js';
 import auditLogRoute from './modules/audit-logs/audit-logs.route.js';
@@ -58,7 +58,7 @@ await server.register(fastifyMultipart);
 await server.register(fastifySwagger, swaggerOptions);
 await server.register(fastifySwaggerUi, { routePrefix: '/swagger' });
 await server.register(fastifyWebsocket);
-await server.register(fastifySSE.default);
+await server.register(fastifySSE);
 await server.register(fastifySchedule);
 await server.register(fastifyAuth);
 await server.register(fastifyJwt, {
@@ -105,22 +105,16 @@ await server.register(fastifyJwt, {
   trusted: trustedRefreshTokens,
 });
 await server.register(fastifyOauth2, {
-  name: 'microsoftOAuth2',
-  scope: ['user.read'],
+  name: 'githubOAuth2',
   credentials: {
     client: {
-      id: server.config.MICROSOFT_CLIENT_ID,
-      secret: server.config.MICROSOFT_CLIENT_SECRET,
+      id: server.config.GITHUB_CLIENT_ID,
+      secret: server.config.GITHUB_CLIENT_SECRET,
     },
-    auth: {
-      authorizeHost: 'https://login.microsoftonline.com',
-      authorizePath: `/${server.config.MICROSOFT_TENANT_ID}/oauth2/v2.0/authorize`,
-      tokenHost: 'https://login.microsoftonline.com',
-      tokenPath: `/${server.config.MICROSOFT_TENANT_ID}/oauth2/v2.0/token`,
-    },
+    auth: fastifyOauth2.GITHUB_CONFIGURATION,
   },
-  startRedirectPath: '/api/v1/auth/login/microsoft',
-  callbackUri: server.config.LOGIN_CALLBACK_URL,
+  startRedirectPath: '/auth/login',
+  callbackUri: `${server.config.SERVER_URL}/auth/login/callback`,
 });
 
 // not found handler
@@ -141,8 +135,8 @@ await server.register(authSessionPlugin);
 await server.register(serverEventsPlugin);
 
 // routes
+await server.register(authRoute);
 await server.register(healthRoute, { prefix: '/api/v1' });
-await server.register(authRoute, { prefix: '/api/v1' });
 await server.register(serverEventsRoute, { prefix: '/api/v1' });
 await server.register(auditLogRoute, { prefix: '/api/v1' });
 await server.register(userRoute, { prefix: '/api/v1' });

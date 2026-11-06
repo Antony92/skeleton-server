@@ -17,7 +17,7 @@ declare module '@fastify/jwt' {
 
 declare module 'fastify' {
   interface FastifyInstance extends FastifyJwtNamespace<{ namespace: 'access' | 'refresh' }> {
-    microsoftOAuth2: OAuth2Namespace;
+    githubOAuth2: OAuth2Namespace;
     config: Config;
   }
 

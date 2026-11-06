@@ -6,13 +6,26 @@ import { AuditLogsAction, AuditLogsTarget } from '../audit-logs/audit-logs.type.
 import { Role } from '../user/user.type.js';
 
 export const loginCallbackHandler = async (request: FastifyRequest, reply: FastifyReply) => {
-  const token =
-    await request.server.microsoftOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
+  const { token } =
+    await request.server.githubOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
 
-  // TODO get user from oauth2 with token
-  const { upn: username, name } = JSON.parse(
-    Buffer.from(token.token.access_token.split('.')[1], 'base64').toString(),
-  );
+  const req = await fetch(`https://api.github.com/user`, {
+    headers: {
+      Authorization: `Bearer ${token.access_token}`,
+      'User-Agent': 'OAuth Test App',
+    },
+  });
+  const res = await req.json();
+
+  if (!req.ok) {
+    throw {
+      message: `OAuth2 token is invalid`,
+      error: 'Auth',
+      statusCode: 401,
+    };
+  }
+
+  const { login: username, name } = res as { login: string; name: string };
 
   const user = await createOrUpdateUser({
     username,
