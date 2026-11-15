@@ -1,5 +1,6 @@
 import type { FastifyRequest } from 'fastify';
 import { IdParam } from '../../types/request.type.js';
+import server from '../../server.js';
 
 export const getFileHandler = async (request: FastifyRequest<{ Params: IdParam }>) => {
   const { id } = request.params;
@@ -31,5 +32,10 @@ export const uploadFileHandler = async (request: FastifyRequest) => {
       };
     }
   }
+  request.raw.on('close', () => {
+    if (request.raw.destroyed) {
+      server.log.info('request closed');
+    }
+  });
   return { message: 'File uploaded' };
 };
