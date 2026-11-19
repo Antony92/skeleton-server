@@ -146,6 +146,14 @@ export const impersonateHandler = async (request: FastifyRequest, reply: Fastify
     };
   }
 
+  if (user.username === username) {
+    throw {
+      message: `Cannot impersonate self`,
+      error: 'Auth',
+      statusCode: 400,
+    };
+  }
+
   const accessToken = await reply.accessJwtSign(
     {
       id: user.id,
