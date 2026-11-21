@@ -18,7 +18,7 @@ import type { CreateServerEventBody, UpdateServerEventBody } from './server-even
 import { Role } from '../user/user.type.js';
 
 const serverEventsRoute: FastifyPluginAsync = async (server) => {
-  server.get('/sse', { sse: true, schema: { hide: true } }, subscribeServerEventsHandler);
+  server.get('/sse', { sse: 'only', schema: { hide: true } }, subscribeServerEventsHandler);
   server.get<{ Querystring: PaginationQuery }>(
     '/server-events',
     { onRequest: server.auth([secured([Role.ADMIN])]), schema: getServerEventsSchema },

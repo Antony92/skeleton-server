@@ -27,7 +27,7 @@ export type ServerEventClient = {
 export type ServerEventSeverity = 'info' | 'warning' | 'error';
 
 export const ServerEventScope = {
-  GLOBAL: 'global',
+  SYSTEM: 'system',
 } as const;
 
 export type ServerEventScope = (typeof ServerEventScope)[keyof typeof ServerEventScope];

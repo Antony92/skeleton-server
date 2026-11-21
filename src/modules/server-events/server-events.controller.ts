@@ -25,7 +25,7 @@ export const subscribeServerEventsHandler = async (
 
   const {
     events: [event],
-  } = await getServerEvents(ServerEventScope.GLOBAL);
+  } = await getServerEvents(ServerEventScope.SYSTEM);
   if (event) {
     request.server.sseClients.send(id, { event: event.scope, data: event });
   } else {
