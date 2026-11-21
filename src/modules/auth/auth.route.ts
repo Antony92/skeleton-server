@@ -17,7 +17,7 @@ const authRoute: FastifyPluginAsync = async (server) => {
   );
   server.post(
     '/auth/refresh',
-    { config: { rateLimit: { max: 10, timeWindow: '15 minutes' } }, schema: { hide: true } },
+    { config: { rateLimit: { max: 1000, timeWindow: '15 minutes' } }, schema: { hide: true } },
     refreshHandler,
   );
   server.get(

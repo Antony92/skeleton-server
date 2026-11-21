@@ -2,23 +2,25 @@ import type { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
 
 export const FeatureFlag = {
-  API_KEYS: 'API_KEYS',
-  FEEDBACK: 'FEEDBACK',
+  API_KEYS: 'api_keys',
+  FEEDBACK: 'feedback',
 } as const;
 
+export type FeatureFlagName = (typeof FeatureFlag)[keyof typeof FeatureFlag];
+
 export type FeatureFlag = {
-  name: keyof typeof FeatureFlag;
+  name: FeatureFlagName;
   enabled: boolean;
 };
 
 export type FeatureFlagsService = {
   getAllFeatureFlags: () => FeatureFlag[];
-  getFeatureFlag: (name: keyof typeof FeatureFlag) => FeatureFlag | undefined;
+  getFeatureFlag: (name: FeatureFlagName) => FeatureFlag | undefined;
 };
 
 declare module 'fastify' {
   interface FastifyContextConfig {
-    featureFlag?: keyof typeof FeatureFlag;
+    featureFlag?: FeatureFlagName;
   }
 
   interface FastifyInstance {
@@ -26,7 +28,7 @@ declare module 'fastify' {
   }
 
   interface FastifyRequest {
-    getFeatureFlag: (name: keyof typeof FeatureFlag) => FeatureFlag | undefined;
+    getFeatureFlag: (name: FeatureFlagName) => FeatureFlag | undefined;
   }
 }
 
@@ -40,7 +42,7 @@ export const featureFlagPluginImpl: FastifyPluginAsync = async (server) => {
     getFeatureFlag: (name) => flags.find((flag) => flag.name === name),
   };
   server.decorate('featureFlags', featureFlags);
-  server.decorateRequest('getFeatureFlag', (name: keyof typeof FeatureFlag) =>
+  server.decorateRequest('getFeatureFlag', (name: FeatureFlagName) =>
     featureFlags.getFeatureFlag(name),
   );
   server.addHook('preHandler', async (request) => {

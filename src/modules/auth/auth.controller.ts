@@ -115,7 +115,15 @@ export const refreshHandler = async (request: FastifyRequest, reply: FastifyRepl
     { jti: crypto.randomUUID() },
   );
 
-  return { accessToken };
+  return {
+    user: {
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      roles: user.roles,
+    },
+    accessToken,
+  };
 };
 
 export const impersonateHandler = async (request: FastifyRequest, reply: FastifyReply) => {
@@ -181,5 +189,14 @@ export const impersonateHandler = async (request: FastifyRequest, reply: Fastify
     `impersonated user ${user.name}`,
   );
 
-  return { accessToken };
+  return {
+    user: {
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      roles: user.roles,
+      impersonated: request.user.username,
+    },
+    accessToken,
+  };
 };
