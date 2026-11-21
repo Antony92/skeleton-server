@@ -135,13 +135,13 @@ server.setNotFoundHandler((request, reply) => {
 // error handler
 server.setErrorHandler((error, request, reply) => {
   if (error instanceof DrizzleQueryError) {
-    request.log.error({ error }, 'Database error');
     return reply.code(500).send({
       error: 'Internal server error',
       statusCode: 500,
       message: `Internal server error.`,
     });
   }
+  return reply.send(error);
 });
 
 // custom plugins

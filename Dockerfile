@@ -16,7 +16,7 @@ FROM base AS builder
 COPY package*.json ./
 RUN npm ci
 
-COPY tsconfig.json ./
+COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
 # Add other directories if needed by compilation (e.g., templates)
 RUN npm run build

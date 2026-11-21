@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync, FastifyReply } from 'fastify';
+import fp from 'fastify-plugin';
 
 export type ServerEvent = {
   event: string;
@@ -18,7 +19,7 @@ declare module 'fastify' {
   }
 }
 
-export const serverEventsPlugin: FastifyPluginAsync = async (server) => {
+export const serverEventsPluginImpl: FastifyPluginAsync = async (server) => {
   const clients = new Map<string, FastifyReply>();
   const sseClients: ServerEventsClients = {
     add: (id: string, reply: FastifyReply) => {
@@ -41,6 +42,11 @@ export const serverEventsPlugin: FastifyPluginAsync = async (server) => {
   };
   server.decorate('sseClients', sseClients);
   server.addHook('onClose', () => clients.clear());
+  return;
 };
+
+export const serverEventsPlugin = fp(serverEventsPluginImpl, {
+  name: 'server-events-plugin',
+});
 
 export default serverEventsPlugin;

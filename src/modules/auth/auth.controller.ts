@@ -62,7 +62,7 @@ export const loginCallbackHandler = async (request: FastifyRequest, reply: Fasti
     httpOnly: true,
     secure: true,
     sameSite: 'strict',
-    path: '/api/v1/auth',
+    path: '/auth',
     expires: new Date(now + request.server.config.COOKIE_REFRESH_EXPIRE),
   });
   reply.redirect(`${request.server.config.LOGIN_REDIRECT}`, 302);
@@ -77,7 +77,7 @@ export const logoutHandler = async (request: FastifyRequest, reply: FastifyReply
     httpOnly: true,
     secure: true,
     sameSite: 'strict',
-    path: '/api/v1/auth',
+    path: '/auth',
   });
   return { message: 'Logout successful' };
 };
@@ -170,7 +170,7 @@ export const impersonateHandler = async (request: FastifyRequest, reply: Fastify
     httpOnly: true,
     secure: true,
     sameSite: 'strict',
-    path: '/api/v1/auth',
+    path: '/auth',
   });
 
   await auditLogs(

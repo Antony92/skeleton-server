@@ -1,4 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
+import fp from 'fastify-plugin';
 import type { FastifyPluginAsync } from 'fastify';
 
 export type Session = {
@@ -25,10 +26,7 @@ declare module 'fastify' {
   }
 }
 
-export const authSessionPlugin: FastifyPluginAsync<AuthSessionOptions> = async (
-  server,
-  options,
-) => {
+const authSessionPluginImpl: FastifyPluginAsync<AuthSessionOptions> = async (server, options) => {
   const database = new DatabaseSync(options.path ?? ':memory:');
   database.exec(`
     CREATE TABLE IF NOT EXISTS sessions (
@@ -42,24 +40,24 @@ export const authSessionPlugin: FastifyPluginAsync<AuthSessionOptions> = async (
   `);
 
   const create = database.prepare(`
-      INSERT INTO sessions (jti, username, created_at, expires_at)
-      VALUES (?, ?, ?, ?)
-      RETURNING jti, username, created_at, expires_at
-    `);
+    INSERT INTO sessions (jti, username, created_at, expires_at)
+    VALUES (?, ?, ?, ?)
+    RETURNING jti, username, created_at, expires_at
+  `);
 
   const get = database.prepare(`
-      SELECT jti, username, created_at, expires_at
-      FROM sessions
-      WHERE jti = ? AND expires_at > ?
-    `);
+    SELECT jti, username, created_at, expires_at
+    FROM sessions
+    WHERE jti = ? AND expires_at > ?
+  `);
 
   const clear = database.prepare(`
-      DELETE FROM sessions WHERE jti = :id OR username = :id
-    `);
+    DELETE FROM sessions WHERE jti = :id OR username = :id
+  `);
 
   const clearExpired = database.prepare(`
-      DELETE FROM sessions WHERE expires_at <= ?
-    `);
+    DELETE FROM sessions WHERE expires_at <= ?
+  `);
 
   const authSession: AuthSession = {
     createSession: (jti: string, username: string, expires_at: number) => {
@@ -75,8 +73,15 @@ export const authSessionPlugin: FastifyPluginAsync<AuthSessionOptions> = async (
       clearExpired.run(Date.now());
     },
   };
+
   server.decorate('authSession', authSession);
-  server.addHook('onClose', () => database.close());
+  server.addHook('onClose', () => {
+    database.close();
+  });
 };
+
+export const authSessionPlugin = fp(authSessionPluginImpl, {
+  name: 'auth-session-plugin',
+});
 
 export default authSessionPlugin;
