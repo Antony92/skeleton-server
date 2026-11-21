@@ -31,6 +31,7 @@ import { configSchema } from './config.js';
 import authSessionPlugin from './modules/auth/auth-session.plugin.js';
 import serverEventsPlugin from './modules/server-events/server-events.plugin.js';
 import fileRoute from './modules/file/file.route.js';
+import featureFlagPlugin from './modules/feature-flag/feature-flag.plugin.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -131,6 +132,7 @@ server.setNotFoundHandler((request, reply) => {
 });
 
 // custom plugins
+await server.register(featureFlagPlugin);
 await server.register(authSessionPlugin);
 await server.register(serverEventsPlugin);
 
