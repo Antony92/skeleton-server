@@ -17,7 +17,7 @@ export type FeatureFlagsService = {
 
 declare module 'fastify' {
   interface FastifyContextConfig {
-    featureFlag: keyof typeof FeatureFlag | undefined;
+    featureFlag?: keyof typeof FeatureFlag;
   }
 
   interface FastifyInstance {
