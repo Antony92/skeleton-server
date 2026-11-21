@@ -32,6 +32,7 @@ import authSessionPlugin from './modules/auth/auth-session.plugin.js';
 import serverEventsPlugin from './modules/server-events/server-events.plugin.js';
 import fileRoute from './modules/file/file.route.js';
 import featureFlagPlugin from './modules/feature-flag/feature-flag.plugin.js';
+import { DrizzleQueryError } from 'drizzle-orm';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -128,6 +129,18 @@ server.setNotFoundHandler((request, reply) => {
     });
   } else {
     reply.sendFile('index.html');
+  }
+});
+
+// error handler
+server.setErrorHandler((error, request, reply) => {
+  if (error instanceof DrizzleQueryError) {
+    request.log.error({ error }, 'Database error');
+    return reply.code(500).send({
+      error: 'Internal server error',
+      statusCode: 500,
+      message: `Internal server error.`,
+    });
   }
 });
 
