@@ -43,16 +43,58 @@ export const updateUserHandler = async (
 ) => {
   const { id } = request.params;
   const body = request.body;
-  const user = await updateUser({ id, ...body, updated: new Date() });
-  await auditLogs(request.user, AuditLogsAction.UPDATE, AuditLogsTarget.USER, user, 'update user');
-  return { message: 'User updated', data: user };
+  const user = await getUserById(id);
+  if (!user) {
+    throw {
+      statusCode: 404,
+      message: `User with id '${id}' not found`,
+      error: 'User',
+    };
+  }
+  if (!user.internal) {
+    throw {
+      statusCode: 403,
+      message: `Cannot update non-internal user`,
+      error: 'User',
+    };
+  }
+  const updated = await updateUser({ id, ...body, updated: new Date() });
+  await auditLogs(
+    request.user,
+    AuditLogsAction.UPDATE,
+    AuditLogsTarget.USER,
+    { before: user, after: updated },
+    'update user',
+  );
+  return { message: 'User updated', data: updated };
 };
 
 export const deleteUserHandler = async (request: FastifyRequest<{ Params: IdParam }>) => {
   const { id } = request.params;
-  const user = await deleteUser(id);
-  await auditLogs(request.user, AuditLogsAction.DELETE, AuditLogsTarget.USER, user, 'delete user');
-  return { message: 'User deleted', data: user };
+  const user = await getUserById(id);
+  if (!user) {
+    throw {
+      statusCode: 404,
+      message: `User with id '${id}' not found`,
+      error: 'User',
+    };
+  }
+  if (!user.internal) {
+    throw {
+      statusCode: 403,
+      message: `Cannot delete non-internal user`,
+      error: 'User',
+    };
+  }
+  const deleted = await deleteUser(id);
+  await auditLogs(
+    request.user,
+    AuditLogsAction.DELETE,
+    AuditLogsTarget.USER,
+    deleted,
+    'delete user',
+  );
+  return { message: 'User deleted', data: deleted };
 };
 
 export const getUserProfileHandler = async (request: FastifyRequest) => {

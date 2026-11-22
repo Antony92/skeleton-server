@@ -7,6 +7,13 @@ export const secured = (roles?: string[]) => {
   return async (request: FastifyRequest) => {
     await request.accessJwtVerify();
     const user = await getUserById(request.user.id);
+    if (!user) {
+      throw {
+        message: `User not found`,
+        error: 'Access',
+        statusCode: 404,
+      };
+    }
     if (user.blocked) {
       throw {
         message: `User is blocked`,

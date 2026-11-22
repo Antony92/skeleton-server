@@ -24,9 +24,6 @@ export const getUserByUsername = async (username: string) => {
       username,
     },
   });
-  if (!user) {
-    throw new Error(`User with username '${username}' not found`);
-  }
   return user;
 };
 
@@ -36,9 +33,6 @@ export const getUserById = async (id: string) => {
       id,
     },
   });
-  if (!user) {
-    throw new Error(`User with id '${id}' not found`);
-  }
   return user;
 };
 
@@ -48,6 +42,7 @@ export const getUsers = async (query: UserSearchQuery = {}) => {
   if (query.active !== undefined) conditions.push(eq(usersTable.active, query.active));
   if (query.blocked !== undefined) conditions.push(eq(usersTable.blocked, query.blocked));
   if (query.internal !== undefined) conditions.push(eq(usersTable.internal, query.internal));
+  if (query.id) conditions.push(eq(usersTable.id, query.id));
   if (query.name) conditions.push(ilike(usersTable.name, `${query.name}%`));
   if (query.username) conditions.push(ilike(usersTable.username, `${query.username}%`));
   if (query.roles)

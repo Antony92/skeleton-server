@@ -26,11 +26,15 @@ export const subscribeServerEventsHandler = async (
   reply.sse.keepAlive();
   await reply.sse.send({ data: 'connected' });
 
-  const {
-    events: [event],
-  } = await getServerEvents(ServerEventScope.SYSTEM);
-  if (event) {
-    request.server.sseClients.send(id, { event: event.scope, data: event });
+  try {
+    const {
+      events: [event],
+    } = await getServerEvents(ServerEventScope.SYSTEM);
+    if (event) {
+      request.server.sseClients.send(id, { event: event.scope, data: event });
+    }
+  } catch (error) {
+    request.log.error(error);
   }
 
   reply.sse.onClose(() => {

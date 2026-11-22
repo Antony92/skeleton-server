@@ -75,9 +75,7 @@ const authSessionPluginImpl: FastifyPluginAsync<AuthSessionOptions> = async (ser
   };
 
   server.decorate('authSession', authSession);
-  server.addHook('onClose', () => {
-    database.close();
-  });
+  server.addHook('onClose', () => database.close());
 };
 
 export const authSessionPlugin = fp(authSessionPluginImpl, {

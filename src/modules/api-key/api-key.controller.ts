@@ -13,6 +13,13 @@ export const createUserApiKeyHandler = async (
   const { id } = request.params;
   const user = await getUserById(id);
   const jti = crypto.randomUUID();
+  if (!user) {
+    throw {
+      message: `User not found`,
+      error: 'ApiKey',
+      statusCode: 404,
+    };
+  }
   const jwt = await reply.accessJwtSign(
     {
       id: user.id,

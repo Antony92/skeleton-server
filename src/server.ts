@@ -32,6 +32,7 @@ import authSessionPlugin from './modules/auth/auth-session.plugin.js';
 import serverEventsPlugin from './modules/server-events/server-events.plugin.js';
 import fileRoute from './modules/file/file.route.js';
 import featureFlagPlugin from './modules/feature-flag/feature-flag.plugin.js';
+import { formatDatabaseError } from './helpers/db.helper.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -133,17 +134,14 @@ server.setNotFoundHandler((request, reply) => {
 });
 
 // error handler
-// server.setErrorHandler((error, request, reply) => {
-//   if (error instanceof DrizzleQueryError) {
-//     request.log.error(error);
-//     return reply.code(500).send({
-//       error: 'Internal server error',
-//       statusCode: 500,
-//       message: `Internal server error.`,
-//     });
-//   }
-//   return reply.code(error.statusCode).send(error);
-// });
+server.setErrorHandler(async (error, request, reply) => {
+  const dbError = formatDatabaseError(error);
+  if (dbError) {
+    request.log.error(error);
+    return reply.code(dbError.statusCode).send(dbError);
+  }
+  throw error;
+});
 
 // custom plugins
 await server.register(featureFlagPlugin);

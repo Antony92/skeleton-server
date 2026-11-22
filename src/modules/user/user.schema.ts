@@ -23,6 +23,7 @@ export const updateUserBodySchema = Type.Pick(createUpdateSchema(usersTable), [
 export const userSearchQuerySchema = Type.Intersect([
   paginationQuerySchema,
   Type.Object({
+    id: Type.Optional(Type.String()),
     name: Type.Optional(Type.String()),
     username: Type.Optional(Type.String()),
     active: Type.Optional(Type.Boolean()),
