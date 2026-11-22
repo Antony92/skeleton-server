@@ -23,13 +23,14 @@ export const subscribeServerEventsHandler = async (
   let id = request.user?.id || crypto.randomUUID();
   request.server.sseClients.add(id, reply);
 
+  reply.sse.keepAlive();
+  await reply.sse.send({ data: 'connected' });
+
   const {
     events: [event],
   } = await getServerEvents(ServerEventScope.SYSTEM);
   if (event) {
     request.server.sseClients.send(id, { event: event.scope, data: event });
-  } else {
-    await reply.sse.send({ data: 'connected' });
   }
 
   reply.sse.onClose(() => {

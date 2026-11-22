@@ -30,13 +30,15 @@ export const serverEventsPluginImpl: FastifyPluginAsync = async (server) => {
     },
     send: (id: string, event: ServerEvent) => {
       const client = clients.get(id);
-      if (client) {
+      if (client && client.sse.isConnected) {
         client.sse.send(event);
       }
     },
     sendAll: (event: ServerEvent) => {
       clients.forEach((reply) => {
-        reply.sse.send(event);
+        if (reply.sse.isConnected) {
+          reply.sse.send(event);
+        }
       });
     },
   };
