@@ -14,7 +14,7 @@ export type ServerEventsClients = {
 };
 
 declare module 'fastify' {
-  interface FastifyReply {
+  interface FastifyInstance {
     sseClients: ServerEventsClients;
   }
 }
@@ -42,7 +42,7 @@ export const serverEventsPluginImpl: FastifyPluginAsync = async (server) => {
       });
     },
   };
-  server.decorateReply('sseClients', sseClients);
+  server.decorate('sseClients', sseClients);
   server.addHook('onClose', () => clients.clear());
   return;
 };

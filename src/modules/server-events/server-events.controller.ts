@@ -21,7 +21,7 @@ export const subscribeServerEventsHandler = async (
   reply: FastifyReply,
 ) => {
   let id = request.user?.id || crypto.randomUUID();
-  reply.sseClients.add(id, reply);
+  request.server.sseClients.add(id, reply);
 
   reply.sse.keepAlive();
   await reply.sse.send({ data: 'connected' });
@@ -30,11 +30,11 @@ export const subscribeServerEventsHandler = async (
     events: [event],
   } = await getServerEvents(ServerEventScope.SYSTEM);
   if (event) {
-    reply.sseClients.send(id, { event: event.scope, data: event });
+    request.server.sseClients.send(id, { event: event.scope, data: event });
   }
 
   reply.sse.onClose(() => {
-    reply.sseClients.remove(id);
+    request.server.sseClients.remove(id);
   });
 };
 
@@ -48,7 +48,6 @@ export const getServerEventsHandler = async (
 
 export const createServerEventHandler = async (
   request: FastifyRequest<{ Body: CreateServerEventBody }>,
-  reply: FastifyReply,
 ) => {
   const body = request.body;
   body.message = sanitizeHtml(body.message, {
@@ -58,7 +57,7 @@ export const createServerEventHandler = async (
     },
   });
   const event = await createServerEvent(body);
-  reply.sseClients.sendAll({ event: event.scope, data: event });
+  request.server.sseClients.sendAll({ event: event.scope, data: event });
   await auditLogs(
     request.user,
     AuditLogsAction.CREATE,
@@ -71,7 +70,6 @@ export const createServerEventHandler = async (
 
 export const updateServerEventHandler = async (
   request: FastifyRequest<{ Params: IdParam; Body: UpdateServerEventBody }>,
-  reply: FastifyReply,
 ) => {
   const { id } = request.params;
   const body = request.body;
@@ -83,7 +81,7 @@ export const updateServerEventHandler = async (
     },
   });
   const event = await updateServerEvent({ id, ...body });
-  reply.sseClients.sendAll({ event: event.scope, data: event });
+  request.server.sseClients.sendAll({ event: event.scope, data: event });
   await auditLogs(
     request.user,
     AuditLogsAction.UPDATE,
