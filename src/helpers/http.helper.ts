@@ -10,3 +10,6 @@ export const searchParamsToQuery = (params: SearchParams) => {
   const query = search.size > 0 ? `?${search.toString()}` : ``;
   return query;
 };
+
+export const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));

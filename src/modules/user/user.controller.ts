@@ -43,7 +43,7 @@ export const updateUserHandler = async (
 ) => {
   const { id } = request.params;
   const body = request.body;
-  const user = await updateUser({ id, ...body });
+  const user = await updateUser({ id, ...body, updated: new Date() });
   await auditLogs(request.user, AuditLogsAction.UPDATE, AuditLogsTarget.USER, user, 'update user');
   return { message: 'User updated', data: user };
 };

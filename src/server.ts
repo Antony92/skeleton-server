@@ -49,6 +49,7 @@ await server.register(fastifyCookie);
 await server.register(fastifyCors, {
   origin: ['http://localhost:8080', 'http://localhost:5173'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
 });
 await server.register(fastifyRateLimit, {
@@ -135,6 +136,7 @@ server.setNotFoundHandler((request, reply) => {
 // error handler
 server.setErrorHandler((error, request, reply) => {
   if (error instanceof DrizzleQueryError) {
+    request.log.error(error);
     return reply.code(500).send({
       error: 'Internal server error',
       statusCode: 500,

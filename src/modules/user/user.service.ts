@@ -45,9 +45,9 @@ export const getUserById = async (id: string) => {
 export const getUsers = async (query: UserSearchQuery = {}) => {
   const { skip = 0, limit = 10, sort = 'created', order = 'desc' } = query;
   const conditions: (SQL | undefined)[] = [];
-  if (query.active) conditions.push(eq(usersTable.active, query.active));
-  if (query.blocked) conditions.push(eq(usersTable.blocked, query.blocked));
-  if (query.internal) conditions.push(eq(usersTable.internal, query.internal));
+  if (query.active !== undefined) conditions.push(eq(usersTable.active, query.active));
+  if (query.blocked !== undefined) conditions.push(eq(usersTable.blocked, query.blocked));
+  if (query.internal !== undefined) conditions.push(eq(usersTable.internal, query.internal));
   if (query.name) conditions.push(ilike(usersTable.name, `${query.name}%`));
   if (query.username) conditions.push(ilike(usersTable.username, `${query.username}%`));
   if (query.roles)
