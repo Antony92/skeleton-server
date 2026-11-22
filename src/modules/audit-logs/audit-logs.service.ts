@@ -47,6 +47,7 @@ export const getAuditLogs = async (query: AuditLogsSearchQuery = {}) => {
       or(
         ilike(auditLogsTable.name, `%${query.search}%`),
         ilike(auditLogsTable.username, `%${query.search}%`),
+        ilike(auditLogsTable.message, `%${query.search}%`),
       ),
     );
 

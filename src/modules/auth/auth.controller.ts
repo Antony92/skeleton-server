@@ -154,7 +154,7 @@ export const impersonateHandler = async (request: FastifyRequest, reply: Fastify
     };
   }
 
-  if (user.username === username) {
+  if (request.user.username === username) {
     throw {
       message: `Cannot impersonate self`,
       error: 'Auth',

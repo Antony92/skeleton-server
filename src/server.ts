@@ -134,17 +134,17 @@ server.setNotFoundHandler((request, reply) => {
 });
 
 // error handler
-server.setErrorHandler((error, request, reply) => {
-  if (error instanceof DrizzleQueryError) {
-    request.log.error(error);
-    return reply.code(500).send({
-      error: 'Internal server error',
-      statusCode: 500,
-      message: `Internal server error.`,
-    });
-  }
-  return reply.send(error);
-});
+// server.setErrorHandler((error, request, reply) => {
+//   if (error instanceof DrizzleQueryError) {
+//     request.log.error(error);
+//     return reply.code(500).send({
+//       error: 'Internal server error',
+//       statusCode: 500,
+//       message: `Internal server error.`,
+//     });
+//   }
+//   return reply.code(error.statusCode).send(error);
+// });
 
 // custom plugins
 await server.register(featureFlagPlugin);
