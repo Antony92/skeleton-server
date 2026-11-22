@@ -1,100 +1,73 @@
 import { DrizzleError, DrizzleQueryError } from 'drizzle-orm';
 import { DatabaseError } from 'pg';
 
-export type ApiErrorResponse = {
-  error: string;
-  statusCode: number;
-  message: string;
+const getField = (error: DatabaseError): string | undefined => {
+  if (error.column) return error.column;
+  const match = error.detail?.match(/^Key \(([^)]+)\)=/);
+  return match?.[1]?.replace(/"/g, '');
 };
 
-const DEFAULT_DB_ERROR: ApiErrorResponse = {
-  error: 'Internal Server Error',
-  statusCode: 500,
-  message: 'Internal server error.',
-};
-
-const PG_ERROR_MAP: Record<string, ApiErrorResponse> = {
-  '22001': {
-    error: 'Bad Request',
-    statusCode: 400,
-    message: 'Input value is too long.',
-  },
-  '22003': {
-    error: 'Bad Request',
-    statusCode: 400,
-    message: 'Numeric value is out of range.',
-  },
-  '22P02': {
-    error: 'Bad Request',
-    statusCode: 400,
-    message: 'Invalid input format.',
-  },
-  '23502': {
-    error: 'Bad Request',
-    statusCode: 400,
-    message: 'Missing required field.',
-  },
-  '23503': {
-    error: 'Bad Request',
-    statusCode: 400,
-    message: 'Referenced resource does not exist.',
-  },
-  '23505': {
-    error: 'Conflict',
-    statusCode: 409,
-    message: 'Resource already exists.',
-  },
-  '23514': {
-    error: 'Bad Request',
-    statusCode: 400,
-    message: 'Invalid data value.',
-  },
-  '40001': {
-    error: 'Conflict',
-    statusCode: 409,
-    message: 'Transaction conflict, please retry.',
-  },
-  '40P01': {
-    error: 'Conflict',
-    statusCode: 409,
-    message: 'Deadlock detected, please retry.',
-  },
-  '53300': {
-    error: 'Service Unavailable',
-    statusCode: 503,
-    message: 'Database is temporarily unavailable.',
-  },
-  '57014': {
-    error: 'Gateway Timeout',
-    statusCode: 504,
-    message: 'Database request timed out.',
-  },
-};
-
-const getPgErrorCode = (error: unknown): string | undefined => {
+export const formatDatabaseError = (error: unknown) => {
+  let pgError: DatabaseError | null = null;
   if (error instanceof DatabaseError) {
-    return error.code;
+    pgError = error;
+  } else if (error instanceof DrizzleQueryError && error.cause instanceof DatabaseError) {
+    pgError = error.cause;
   }
-  if (error instanceof DrizzleQueryError && error.cause instanceof DatabaseError) {
-    return error.cause.code;
-  }
-  return undefined;
-};
 
-export const formatDatabaseError = (error: unknown): ApiErrorResponse | null => {
   const isDbError =
-    error instanceof DrizzleQueryError ||
-    error instanceof DrizzleError ||
-    error instanceof DatabaseError;
+    pgError !== null || error instanceof DrizzleQueryError || error instanceof DrizzleError;
 
-  if (!isDbError) {
-    return null;
+  if (!isDbError) return null;
+
+  const field = pgError ? getField(pgError) : undefined;
+
+  switch (pgError?.code) {
+    case '23505':
+      return {
+        statusCode: 409,
+        error: 'Conflict',
+        message: field ? `Value for '${field}' already exists.` : 'Resource already exists.',
+        field,
+      };
+    case '23503':
+      return {
+        statusCode: 400,
+        error: 'Bad Request',
+        message: field
+          ? `Invalid reference for '${field}'.`
+          : 'Referenced resource does not exist.',
+        field,
+      };
+    case '23502':
+      return {
+        statusCode: 400,
+        error: 'Bad Request',
+        message: field ? `Field '${field}' is required.` : 'Missing required field.',
+        field,
+      };
+    case '23514':
+      return {
+        statusCode: 400,
+        error: 'Bad Request',
+        message: field ? `Invalid value for '${field}'.` : 'Invalid data value.',
+        field,
+      };
+    case '22P02':
+      return { statusCode: 400, error: 'Bad Request', message: 'Invalid input format.' };
+    case '22001':
+      return { statusCode: 400, error: 'Bad Request', message: 'Input value is too long.' };
+    case '22003':
+      return { statusCode: 400, error: 'Bad Request', message: 'Numeric value is out of range.' };
+    case '40001':
+      return { statusCode: 409, error: 'Conflict', message: 'Transaction conflict, please retry.' };
+    case '40P01':
+      return { statusCode: 409, error: 'Conflict', message: 'Deadlock detected, please retry.' };
+    case '53300':
+      return { statusCode: 503, error: 'Service Unavailable', message: 'Database unavailable.' };
+    case '57014':
+      return { statusCode: 504, error: 'Gateway Timeout', message: 'Database request timed out.' };
+    default:
+      return { statusCode: 500, error: 'Internal Server Error', message: 'Internal server error.' };
   }
-
-  const code = getPgErrorCode(error);
-  if (code && code in PG_ERROR_MAP) {
-    return PG_ERROR_MAP[code];
-  }
-
-  return DEFAULT_DB_ERROR;
 };
